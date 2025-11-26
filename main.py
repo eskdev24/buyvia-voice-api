@@ -6,15 +6,33 @@ Powered by Google Speech Recognition as per PRD requirements
 
 import os
 import io
+import sys
 import tempfile
 from typing import Optional
+
+# Fix for Python 3.13+ where aifc was removed (for local development)
+if sys.version_info >= (3, 13):
+    import warnings
+    warnings.filterwarnings("ignore", category=DeprecationWarning)
+    # Create stub modules for removed audio modules
+    import types
+    for mod_name in ['aifc', 'audioop', 'chunk', 'sndhdr', 'sunau']:
+        if mod_name not in sys.modules:
+            sys.modules[mod_name] = types.ModuleType(mod_name)
 
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from dotenv import load_dotenv
-import speech_recognition as sr
+
+# Import speech_recognition after the Python 3.13 fix
+try:
+    import speech_recognition as sr
+    SPEECH_RECOGNITION_AVAILABLE = True
+except ImportError:
+    SPEECH_RECOGNITION_AVAILABLE = False
+    sr = None
 
 from utils.accent_mapper import (
     normalize_accent, 
@@ -46,12 +64,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Initialize Google Speech Recognition
-recognizer = sr.Recognizer()
-# Configure recognizer for better accuracy with Ghanaian accents
-recognizer.energy_threshold = 300
-recognizer.dynamic_energy_threshold = True
-recognizer.pause_threshold = 0.8
+# Initialize Google Speech Recognition (if available)
+recognizer = None
+if SPEECH_RECOGNITION_AVAILABLE and sr:
+    recognizer = sr.Recognizer()
+    # Configure recognizer for better accuracy with Ghanaian accents
+    recognizer.energy_threshold = 300
+    recognizer.dynamic_energy_threshold = True
+    recognizer.pause_threshold = 0.8
 
 
 class TranscriptionResponse(BaseModel):
@@ -111,6 +131,13 @@ async def transcribe_audio(file: UploadFile = File(...)):
     
     This is the primary endpoint for voice commands as per PRD requirements.
     """
+    # Check if speech recognition is available
+    if not SPEECH_RECOGNITION_AVAILABLE or not recognizer:
+        return TranscriptionResponse(
+            success=False,
+            error="Speech recognition not available on Python 3.13+. Use /parse endpoint with text instead, or deploy to Render (Python 3.11)."
+        )
+    
     temp_wav_path = None
     
     try:

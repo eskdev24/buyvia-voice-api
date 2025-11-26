@@ -11,7 +11,10 @@ from typing import Optional, Tuple
 
 # Try to import pydub for format conversion (requires FFmpeg)
 try:
-    from pydub import AudioSegment
+    import warnings
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        from pydub import AudioSegment
     PYDUB_AVAILABLE = True
 except ImportError:
     PYDUB_AVAILABLE = False

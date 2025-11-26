@@ -42,6 +42,12 @@ ACCENT_MAP = {
     "na": "is",
     "sef": "self",
     
+    # Search/Action words
+    "serch": "search",
+    "sersh": "search",
+    "finde": "find",
+    "showe": "show",
+    
     # Electronics
     "fone": "phone",
     "fones": "phones",
@@ -88,7 +94,6 @@ ACCENT_MAP = {
     "addit": "add it",
     "remov": "remove",
     "removit": "remove it",
-    "serch": "search",
     "sech": "search",
     "fain": "find",
     "faind": "find",
@@ -109,7 +114,8 @@ ACCENT_MAP = {
     "wan": "one",
     "tu": "two",
     "tree": "three",
-    "fo": "four",
+    "foa": "four",
+    "foah": "four",
     "faiv": "five",
     "siks": "six",
     "seven": "seven",
